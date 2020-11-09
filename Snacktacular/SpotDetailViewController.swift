@@ -16,12 +16,20 @@ class SpotDetailViewController: UIViewController {
     @IBOutlet weak var addressTextField: UITextField!
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var ratingLabel: UILabel!
+    @IBOutlet weak var tableView: UITableView!
     
     var spot: Spot!
     let regionDistance: CLLocationDegrees = 750.0
     var locationManager: CLLocationManager!
+    var reviews: [String] = ["Tasty", "Awf","Tasty", "Awf","Tasty", "Awf","Tasty", "Awf","Tasty", "Awf"]
     
     override func viewDidLoad() {
+        let tap = UITapGestureRecognizer(target: self.view, action: #selector(UIView.endEditing(_:)))
+        tap.cancelsTouchesInView = false
+        self.view.addGestureRecognizer(tap)
+        
+        tableView.delegate = self
+        tableView.dataSource = self
         super.viewDidLoad()
         
         if spot == nil {
@@ -84,6 +92,12 @@ class SpotDetailViewController: UIViewController {
         autocompleteController.delegate = self
         present(autocompleteController, animated: true, completion: nil)
     }
+    
+    @IBAction func ratingButtonPressed(_ sender: UIButton) {
+        
+        //check if spot saved
+    }
+    
 }
 extension SpotDetailViewController: GMSAutocompleteViewControllerDelegate {
 
@@ -190,4 +204,18 @@ extension SpotDetailViewController: CLLocationManagerDelegate {
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print("ERROR: \(error.localizedDescription). Failed to get the device location.")
     }
+}
+
+
+extension SpotDetailViewController: UITableViewDelegate, UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return reviews.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "ReviewCell", for: indexPath)
+        return cell
+    }
+    
+    
 }
