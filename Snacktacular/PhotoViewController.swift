@@ -6,6 +6,14 @@
 //
 
 import UIKit
+import Firebase
+
+private let dateFormatter: DateFormatter = {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateStyle = .medium
+    dateFormatter.timeStyle = .none
+    return dateFormatter
+}()
 
 class PhotoViewController: UIViewController {
     
@@ -15,7 +23,16 @@ class PhotoViewController: UIViewController {
     @IBOutlet weak var deleteBarButton: UIBarButtonItem!
     
     
+    @IBOutlet weak var postedByLabel: UILabel!
+    
+    @IBOutlet weak var dateLabel: UILabel!
+    
+    @IBOutlet weak var descriptionTextView: UITextView!
+    
+    @IBOutlet weak var photoImageView: UIImageView!
+    
     var spot: Spot!
+    var photo: Photo!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,8 +45,50 @@ class PhotoViewController: UIViewController {
             print("error No spot passed to PhotoViewController")
             return
         }
-
+        
+        if photo == nil {
+            photo = Photo()
+        }
+        updateUserInterface()
         // Do any additional setup after loading the view.
+    }
+    
+    func updateUserInterface(){
+        postedByLabel.text = "By: \(photo.photoUserEmail)"
+        dateLabel.text = "On: \(dateFormatter.string(from: photo.date))"
+        descriptionTextView.text = photo.description
+        photoImageView.image = photo.image
+        
+        if photo.documentID == "" {// new photo
+            addBordersToEditableObjects()
+        }
+        else{
+            if photo.photoUserID == Auth.auth().currentUser?.uid { // photo poseted by current user
+                self.navigationItem.leftItemsSupplementBackButton = false
+                saveBarButton.title = "Update"
+                addBordersToEditableObjects()
+                self.navigationController?.setToolbarHidden(false, animated: true)
+            }
+            else{ // diff user
+                saveBarButton.hide()
+                cancelBarButton.hide()
+                //eventually change uid to email
+                postedByLabel.text = "Posted by: \(photo.photoUserEmail)"
+               
+                descriptionTextView.isEditable = false
+                descriptionTextView.backgroundColor = .white
+                
+            }
+        }
+    }
+    
+    func updateFromUserInterface(){
+        photo.description = descriptionTextView.text
+        photo.image = photoImageView.image!
+    }
+    
+    func addBordersToEditableObjects(){
+        descriptionTextView.addBorder(width: 0.5, radius: 5.0, color: .black)
     }
     func leaveViewController() {
         let isPresentingInAddMode = presentingViewController is UINavigationController
@@ -48,8 +107,15 @@ class PhotoViewController: UIViewController {
     @IBAction func cancelButtonPessed(_ sender: UIBarButtonItem) {
     }
     @IBAction func saveButtonPessed(_ sender: UIBarButtonItem) {
-        //TODO:- More stuff
-        leaveViewController()
+        updateFromUserInterface()
+        photo.saveData(spot: spot) { (success) in
+            if success{
+                self.leaveViewController()
+            }
+            else{
+                print("Cant unwind from PhotoViewController bc phtoo saving error")
+            }
+        }
     }
     
 }
