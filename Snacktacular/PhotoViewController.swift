@@ -7,6 +7,7 @@
 
 import UIKit
 import Firebase
+import SDWebImage
 
 private let dateFormatter: DateFormatter = {
     let dateFormatter = DateFormatter()
@@ -80,6 +81,15 @@ class PhotoViewController: UIViewController {
                 
             }
         }
+        guard let url = URL(string: "\(photo.photoURL)") else{
+            print("URl didnt work")
+            photoImageView.image = photo.image
+            return
+        }
+        photoImageView.sd_imageTransition = .fade
+        photoImageView.sd_imageTransition?.duration = 0.5
+        photoImageView.sd_setImage(with: url)
+        
     }
     
     func updateFromUserInterface(){

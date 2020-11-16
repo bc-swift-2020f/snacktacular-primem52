@@ -19,12 +19,14 @@ class SpotDetailViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var saveBarButton: UIBarButtonItem!
     @IBOutlet weak var cancelBarButton: UIBarButtonItem!
+    @IBOutlet weak var collectionView: UICollectionView!
     
     var spot: Spot!
     var photo: Photo!
     let regionDistance: CLLocationDegrees = 750.0
     var locationManager: CLLocationManager!
     var reviews: Reviews!
+    var photos: Photos!
     var imagePickerController = UIImagePickerController()
     
     override func viewDidLoad() {
@@ -34,6 +36,9 @@ class SpotDetailViewController: UIViewController {
         
         tableView.delegate = self
         tableView.dataSource = self
+        
+        collectionView.delegate = self
+        collectionView.dataSource = self
         
         imagePickerController.delegate = self
         
@@ -50,7 +55,8 @@ class SpotDetailViewController: UIViewController {
             navigationController?.setToolbarHidden(true, animated: true)
         }
         setupMapView()
-        reviews = Reviews() // eventually loads review object
+        reviews = Reviews()
+        photos = Photos()
         updateUserInterface()
 
         // Do any additional setup after loading the view.
@@ -65,6 +71,10 @@ class SpotDetailViewController: UIViewController {
         
         reviews.loadData(spot: spot) {
             self.tableView.reloadData()
+        }
+        
+        photos.loadData(spot: spot) {
+            self.collectionView.reloadData()
         }
     }
     func setupMapView(){
@@ -118,8 +128,13 @@ class SpotDetailViewController: UIViewController {
             destination.photo = photo
         case "ShowPhoto":
             let destination = segue.destination as! PhotoViewController
-         //   let selectedIndexPath = tableView.indexPathForSelectedRow!
-           // destination.review = reviews.reviewArray[selectedIndexPath.row]
+            guard let selectedIndexPath = collectionView.indexPathsForSelectedItems?.first
+            else{
+                print("coulnt get selected item")
+                return
+            }
+
+            destination.photo = photos.photoArray[selectedIndexPath.row]
             destination.spot = spot
         default:
             "couldnt find case for \(segue.identifier)"
@@ -345,6 +360,18 @@ extension SpotDetailViewController: UITableViewDelegate, UITableViewDataSource {
         cell.review = reviews.reviewArray[indexPath.row]
         return cell
     }
+}
+extension SpotDetailViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return photos.photoArray.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let photoCell = collectionView.dequeueReusableCell(withReuseIdentifier: "PhotoCell", for: indexPath) as! SpotPhotoCollectionViewCell
+        photoCell.spot = spot
+        photoCell.photo = photos.photoArray[indexPath.row]
+        return photoCell
+    }
     
     
 }
@@ -383,6 +410,8 @@ extension SpotDetailViewController: UIImagePickerControllerDelegate, UINavigatio
             self.oneButtonAlert(title: "Camera not Available", message: "There is no camera on this device.")
         }
     }
+    
+    
 }
 
     

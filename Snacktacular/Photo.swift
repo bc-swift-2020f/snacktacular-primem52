@@ -79,6 +79,29 @@ class Photo {
         }
         uploadTask.observe(.success) { (snapshot) in
             print("upload to firebase storage was successful")
+            
+            storageRef.downloadURL { (url, error) in
+                guard error == nil else{
+                    print("Error couldnt create download url, \(error!.localizedDescription)")
+                    return completion(false)
+                }
+                guard url == url else{
+                    print("Error url was nil, \(error!.localizedDescription)")
+                    return completion(false)
+                }
+                self.photoURL = "\(url)"
+                let dataToSave: [String: Any] = self.dictionary
+                let ref = db.collection("spots").document(spot.documentID).collection("reviews").document((self.documentID))
+                ref.setData(dataToSave) {(error) in
+                    guard error == nil else{
+                        print("Error: \(error!.localizedDescription)")
+                        return completion(false)
+                    }
+                    print("Added document: \(self.documentID) in spot \(spot.documentID)")
+                    completion(true)
+                }
+                
+            }
             //grab user id
             let dataToSave: [String: Any] = self.dictionary
             
@@ -99,5 +122,24 @@ class Photo {
             }
             completion(false)
         }
+    }
+    func loadImage(spot: Spot, completion: @escaping (Bool) -> ()){
+        guard spot.documentID != "" else{
+            print("error didnt pass valid spot into loadIamge")
+            return
+        }
+        let storage = Storage.storage()
+        let storageRef = storage.reference().child(spot.documentID).child(documentID)
+        storageRef.getData(maxSize: 25*1024*1024) { (data, error) in
+            if let error = error{
+                print("Error: Erro while reading from file ref \(storageRef). Error: \(error.localizedDescription)")
+                return completion(false)
+            }
+            else{
+                self.image = UIImage(data: data!) ?? UIImage()
+                return completion(true)
+            }
+        }
+        
     }
 }
