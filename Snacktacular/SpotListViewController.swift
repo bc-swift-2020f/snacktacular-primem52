@@ -63,7 +63,7 @@ class SpotListViewController: UIViewController {
         case 1://Closest
             spots.spotArray.sort(by: {$0.location.distance(from: currentLocation) < $1.location.distance(from: currentLocation)})
         case 2: // avg
-            print("toto")
+            spots.spotArray.sort(by: {$0.averageRating > $1.averageRating})
         default:
             "Bad things happened"
         }
