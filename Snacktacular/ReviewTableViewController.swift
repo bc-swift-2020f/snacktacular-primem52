@@ -6,6 +6,14 @@
 //
 
 import UIKit
+import Firebase
+
+private let dateFormatter: DateFormatter = {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateStyle = .medium
+    dateFormatter.timeStyle = .none
+    return dateFormatter
+}()
 
 class ReviewTableViewController: UITableViewController {
 
@@ -41,6 +49,9 @@ class ReviewTableViewController: UITableViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        let tap = UITapGestureRecognizer(target: self.view, action: #selector(UIView.endEditing(_:)))
+        tap.cancelsTouchesInView = false
+        self.view.addGestureRecognizer(tap)
         
         guard spot != nil else{
             print("No spot passed")
@@ -59,12 +70,47 @@ class ReviewTableViewController: UITableViewController {
         reviewTitleLabel.text = review.title
         reviewTextView.text = review.text
         rating = review.rating //update stars
-        
+        reviewDateLabel.text = "Posted: \(dateFormatter.string(from: review.date))"
+        if review.documentID == "" {// new review
+            addBordersToEditableObjects()
+        }
+        else{
+            if review.reviewUserID == Auth.auth().currentUser?.uid { // review poseted by current user
+                self.navigationItem.leftItemsSupplementBackButton = false
+                saveBarButton.title = "Update"
+                addBordersToEditableObjects()
+                deleteButton.isHidden = false
+            }
+            else{ // diff user
+                saveBarButton.hide()
+                cancelBarButton.hide()
+                //eventually change uid to email
+                postedByLabel.text = "Posted by: \(review.reviewUserEmail)"
+                for starButton in starButtonCollection{
+                    starButton.backgroundColor = .white
+                    starButton.isEnabled = false
+                }
+                reviewTitleLabel.isEnabled = false
+                reviewTitleLabel.noBorder() // iffy
+                reviewTextView.isEditable = false
+                reviewTitleLabel.backgroundColor = .white
+                reviewTextView.backgroundColor = .white
+                
+            }
+        }
     }
     func updateFromUserInterface(){
         review.title = reviewTitleLabel.text!
         review.text = reviewTextView.text!
         
+    }
+    
+    func addBordersToEditableObjects(){
+        reviewTitleLabel.addBorder(width: 0.5, radius: 5.0, color: .black)
+        reviewTextView.addBorder(width: 0.5, radius: 5.0, color: .black)
+        buttonsBackgroundView.addBorder(width: 0.5, radius: 5.0, color: .black)
+
+
     }
     
     func leaveViewController() {
@@ -78,6 +124,13 @@ class ReviewTableViewController: UITableViewController {
     }
 
     @IBAction func reviewTitleChanged(_ sender: UITextField) {
+        let noSpaces = reviewTitleLabel.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        if noSpaces != ""{
+            saveBarButton.isEnabled = true
+        }
+        else{
+            saveBarButton.isEnabled = false
+        }
     }
     
     
@@ -86,6 +139,14 @@ class ReviewTableViewController: UITableViewController {
     
     
     @IBAction func deleteButtonPressed(_ sender: UIButton) {
+        review.deleteData(spot: spot) { (success) in
+            if success{
+                self.leaveViewController()
+            }
+            else{
+                print("Delete Unsuccessful")
+            }
+        }
     }
     
     @IBAction func cancelButtonPressed(_ sender: UIBarButtonItem) {

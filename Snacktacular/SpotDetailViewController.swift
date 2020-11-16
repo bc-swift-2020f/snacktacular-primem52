@@ -17,6 +17,8 @@ class SpotDetailViewController: UIViewController {
     @IBOutlet weak var mapView: MKMapView!
     @IBOutlet weak var ratingLabel: UILabel!
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var saveBarButton: UIBarButtonItem!
+    @IBOutlet weak var cancelBarButton: UIBarButtonItem!
     
     var spot: Spot!
     let regionDistance: CLLocationDegrees = 750.0
@@ -32,8 +34,15 @@ class SpotDetailViewController: UIViewController {
         tableView.dataSource = self
         super.viewDidLoad()
         
+        
         if spot == nil {
             spot = Spot()
+        }
+        else{
+            disableTextEditing()
+            cancelBarButton.hide()
+            saveBarButton.hide()
+            navigationController?.setToolbarHidden(true, animated: true)
         }
         setupMapView()
         reviews = Reviews() // eventually loads review object
@@ -71,6 +80,15 @@ class SpotDetailViewController: UIViewController {
         spot.address = addressTextField.text!
     }
     
+    func disableTextEditing(){
+        nameTextField.isEnabled = false
+        addressTextField.isEnabled = false
+        nameTextField.backgroundColor = .clear
+        addressTextField.backgroundColor = .clear
+        nameTextField.borderStyle = .none
+        addressTextField.borderStyle = .none
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         updateUserInterface()
         switch segue.identifier ?? "" {
@@ -89,11 +107,25 @@ class SpotDetailViewController: UIViewController {
         }
     }
     
+    @IBAction func nameFieldChanged(_ sender: UITextField) {
+        let noSpaces = nameTextField.text!.trimmingCharacters(in: .whitespacesAndNewlines)
+        if noSpaces != ""{
+            saveBarButton.isEnabled = true
+        }
+        else{
+            saveBarButton.isEnabled = false
+        }
+    }
+    
     
     func saveCancelAlert(title: String, message: String, segueIdentifier: String){
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
         let saveAction = UIAlertAction(title: "Save", style: .default) { (_) in
             self.spot.saveData { (success) in
+                self.saveBarButton.title = "Done"
+                self.cancelBarButton.hide()
+                self.navigationController?.setToolbarHidden(true, animated: true)
+                self.disableTextEditing()
                 self.performSegue(withIdentifier: segueIdentifier, sender: nil)
             }
         }
