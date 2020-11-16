@@ -101,7 +101,15 @@ class SpotDetailViewController: UIViewController {
             let selectedIndexPath = tableView.indexPathForSelectedRow!
             destination.review = reviews.reviewArray[selectedIndexPath.row]
             destination.spot = spot
-            
+        case "AddPhoto":
+            let navigationController = segue.destination as! UINavigationController
+            let destination = navigationController.viewControllers.first as! PhotoViewController
+            destination.spot = spot
+        case "ShowPhoto":
+            let destination = segue.destination as! PhotoViewController
+         //   let selectedIndexPath = tableView.indexPathForSelectedRow!
+           // destination.review = reviews.reviewArray[selectedIndexPath.row]
+            destination.spot = spot
         default:
             "couldnt find case for \(segue.identifier)"
         }
@@ -175,6 +183,15 @@ class SpotDetailViewController: UIViewController {
             performSegue(withIdentifier: "AddReview", sender: nil)
         }
         //check if spot saved
+    }
+    
+    @IBAction func photoButtonPressed(_ sender: UIButton) {
+        if spot.documentID == "" {
+            saveCancelAlert(title: "This venue has not been saved", message: "Must save first", segueIdentifier: "AddPhoto")
+        }
+        else{
+            performSegue(withIdentifier: "AddPhoto", sender: nil)
+        }
     }
     
 }
