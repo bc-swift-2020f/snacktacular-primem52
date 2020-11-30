@@ -100,6 +100,7 @@ class PhotoViewController: UIViewController {
     func addBordersToEditableObjects(){
         descriptionTextView.addBorder(width: 0.5, radius: 5.0, color: .black)
     }
+    
     func leaveViewController() {
         let isPresentingInAddMode = presentingViewController is UINavigationController
         if isPresentingInAddMode {
@@ -113,8 +114,17 @@ class PhotoViewController: UIViewController {
 
     
     @IBAction func deleteButtonPessed(_ sender: UIBarButtonItem) {
+        photo.deleteData(spot: spot){ (success) in
+            if success{
+                self.leaveViewController()
+            }
+            else{
+                print("cant unwind")
+            }
+        }
     }
     @IBAction func cancelButtonPessed(_ sender: UIBarButtonItem) {
+        leaveViewController()
     }
     @IBAction func saveButtonPessed(_ sender: UIBarButtonItem) {
         updateFromUserInterface()

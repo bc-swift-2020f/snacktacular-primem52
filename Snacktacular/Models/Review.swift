@@ -91,6 +91,7 @@ class Review {
             if let error = error {
                 print("Error deleting:\(self.documentID)")
                 print("Error:\(error.localizedDescription)")
+                completion(false)
             }
             else{
                 print("successfully deleted document: \(self.documentID)")

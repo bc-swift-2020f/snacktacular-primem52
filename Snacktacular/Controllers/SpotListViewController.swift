@@ -73,6 +73,9 @@ class SpotListViewController: UIViewController {
     @IBAction func sortSegmentPressed(_ sender: UISegmentedControl) {
     }
     
+    @IBAction func usersButtonPressed(_ sender: UIBarButtonItem) {
+    }
+    
 }
 
 extension SpotListViewController: UITableViewDelegate, UITableViewDataSource {
